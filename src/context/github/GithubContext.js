@@ -12,25 +12,29 @@ export const GithubProvider = ({ children }) => {
   const initialState = {
     users: [],
     user: {},
+    repos: [],
     loading: false,
   };
   const [state, dispatch] = useReducer(githubReducer, initialState);
-
-  //테스트용 유저검색
-  const fetchUsers = async () => {
+  //한명의 유저검색
+  const getUser = async (login) => {
     setLoading(); //데이터를 가져오기 전에 로딩을 true로 업데이트
-    const response = await fetch("https://api.github.com/users", {
+    const response = await fetch(`https://api.github.com/users/${login}`, {
       headers: {
         Authorization: `token ${GITHUB_TOKEN}`,
       },
     });
-    const data = await response.json(); //제이슨 변환
-    dispatch({
-      type: "GET_USERS",
-      payload: data,
-    });
+    //로그인아이디가 없을 경우에는 못찾음 페이지
+    if (response.status === 404) {
+      window.location = "/notfound"; //404 페이지 표시
+    } else {
+      const data = await response.json(); //제이슨 변환
+      dispatch({
+        type: "GET_USER",
+        payload: data,
+      });
+    }
   };
-
   //특정 단어로 유저찾기
   const searchUsers = async (text) => {
     setLoading(); //데이터를 가져오기 전에 로딩을 true로 업데이트
@@ -50,7 +54,32 @@ export const GithubProvider = ({ children }) => {
     });
   };
 
-  //아이디로 유저찾기
+  //유저의 공개된 repos 검색
+  const getUserRepo = async (login) => {
+    setLoading(); //데이터를 가져오기 전에 로딩을 true로 업데이트
+
+    //파라미터 옵션
+    const params = new URLSearchParams({
+      sort: "created",
+      direction: "desc",
+      per_page: 10,
+    });
+
+    const response = await fetch(
+      `https://api.github.com/users/${login}/repos?${params}`,
+      {
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+        },
+      }
+    );
+    const data = await response.json(); //제이슨 변환
+    dispatch({
+      type: "GET_REPOS",
+      payload: data,
+      loading: false,
+    });
+  };
 
   //로딩상태를 true로 업데이트하기 위한 dispatch
   const setLoading = () =>
@@ -69,8 +98,11 @@ export const GithubProvider = ({ children }) => {
         users: state.users,
         user: state.user,
         loading: state.loading,
+        repos: state.repos,
         searchUsers,
         clearUsers,
+        getUser,
+        getUserRepo,
       }}
     >
       {children}
