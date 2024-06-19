@@ -11,9 +11,11 @@ export const GithubProvider = ({ children }) => {
   //스테이트의 초기값
   const initialState = {
     users: [],
+    user: {},
     loading: false,
   };
   const [state, dispatch] = useReducer(githubReducer, initialState);
+
   //테스트용 유저검색
   const fetchUsers = async () => {
     setLoading(); //데이터를 가져오기 전에 로딩을 true로 업데이트
@@ -28,6 +30,7 @@ export const GithubProvider = ({ children }) => {
       payload: data,
     });
   };
+
   //특정 단어로 유저찾기
   const searchUsers = async (text) => {
     setLoading(); //데이터를 가져오기 전에 로딩을 true로 업데이트
@@ -47,6 +50,8 @@ export const GithubProvider = ({ children }) => {
     });
   };
 
+  //아이디로 유저찾기
+
   //로딩상태를 true로 업데이트하기 위한 dispatch
   const setLoading = () =>
     dispatch({
@@ -62,6 +67,7 @@ export const GithubProvider = ({ children }) => {
     <GithubContext.Provider
       value={{
         users: state.users,
+        user: state.user,
         loading: state.loading,
         searchUsers,
         clearUsers,
